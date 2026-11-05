@@ -1,0 +1,57 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Экран оплаты</title>
+</head>
+<body>
+    <h1>Экран оплаты заказа #{{ order.id }}</h1>
+    <p><b>Получатель:</b> {{ order.tg_target }}</p>
+    <p><b>Сумма к списанию:</b> USD {{ order.final_amount }}</p>
+
+    {% if order.status.value == "paid" %}
+        <p style="color: green;"><b>Заказ уже оплачен!</b></p>
+        <p>Ваш ключ доступа: <code>{{ order.access_key }}</code></p>
+    {% else %}
+        <button id="payBtn" onclick="payOrder()">Оплатить заказ</button>
+        <div id="statusResult" style="margin-top: 15px;"></div>
+
+        <script>
+        async function payOrder() {
+            const btn = document.getElementById("payBtn");
+            const resDiv = document.getElementById("statusResult");
+            btn.disabled = true;
+            resDiv.innerHTML = "<i>Обработка платежа, сбор метаданных профиля и генерация ключа...</i>";
+
+            const randomTx = "tx_" + Math.random().toString(36).substring(2, 10);
+            const payload = {
+                transaction_id: randomTx,
+                order_id: {{ order.id }},
+                status: "success",
+                amount: {{ order.final_amount }}
+            };
+
+            try {
+                const response = await fetch("/api/payments/webhook", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resDiv.innerHTML = "<b style=\"color: green;\">Оплата успешно прошла!</b><br>Ваш ключ доступа: <code>" + data.access_key + "</code>";
+                } else {
+                    resDiv.innerHTML = "<b style=\"color: red;\">Ошибка: " + (data.detail || "Ошибка платежа") + "</b>";
+                    btn.disabled = false;
+                }
+            } catch (err) {
+                resDiv.innerHTML = "<b style=\"color: red;\">Ошибка отправки вебхука.</b>";
+                btn.disabled = false;
+            }
+        }
+        </script>
+    {% endif %}
+</body>
+</html>

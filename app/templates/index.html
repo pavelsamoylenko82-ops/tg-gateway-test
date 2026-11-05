@@ -1,0 +1,22 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Оформление заказа</title>
+</head>
+<body>
+    <h1>Оформление заказа</h1>
+    <p><b>Товар:</b> VIP Доступ на месяц</p>
+    <p><b>Базовая стоимость:</b> USD {{ base_price }}</p>
+
+    <form action="/orders/create" method="post">
+        <label for="tg_target">Telegram Username (@username) или ID:</label><br>
+        <input type="text" id="tg_target" name="tg_target" placeholder="@username" required><br><br>
+
+        <input type="checkbox" id="apply_discount" name="apply_discount" value="true">
+        <label for="apply_discount">Применить скидку постоянного клиента (-15%)</label><br><br>
+
+        <button type="submit">Перейти к оплате</button>
+    </form>
+</body>
+</html>
